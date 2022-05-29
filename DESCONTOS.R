@@ -13,7 +13,7 @@ con2 <- dbConnect(odbc::odbc(), "reproreplica")
 
 gm_auth_configure(path = "C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\sendmail.json")
 
-descontos <-get(load("C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos.RData"))
+descontos_repro <-get(load("C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos_repro.RData"))
 
 
 ## BASE CLIENTES ==================================================================================
@@ -106,7 +106,7 @@ sales_cli_kdk_2022 <- dbGetQuery(con2,"
     PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,P.CLICODIGO FROM PEDID P
        INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
         INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO
-         WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01/01/2022' AND 'TODAY'),
+         WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01.01.2022' AND 'TODAY'),
          
     AUX AS (SELECT PROCODIGO FROM PRODU WHERE MARCODIGO=24)     
     
@@ -189,7 +189,7 @@ sales_cli_geral_2022 <- dbGetQuery(con2,"
     PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,P.CLICODIGO FROM PEDID P
        INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
         INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO
-         WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01/01/2022' AND 'TODAY')
+         WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01.01.2022' AND 'TODAY')
     
     SELECT PEDDTBAIXA,
     P.CLICODIGO,
@@ -231,7 +231,8 @@ desct_vlx <- dbGetQuery(con2,"
       WHERE TBPCODIGO IN (101,102,103,104,105)
       ") 
 
-desct_vlx2 <- desct_vlx %>% group_by(CLICODIGO) %>% summarize(DESCTO_VLX=round(mean(TBPDESC2,na.rm = TRUE),1))
+desct_vlx2 <- desct_vlx %>% group_by(CLICODIGO) %>% 
+  summarize(DESCTO_VLX=round(mean(TBPDESC2,na.rm = TRUE),1))
 
 
 desct_kdk <- dbGetQuery(con2,"
@@ -246,7 +247,8 @@ desct_kdk <- dbGetQuery(con2,"
       WHERE TBPCODIGO IN (201,202)
       ") 
 
-desct_kdk2 <- desct_kdk %>% group_by(CLICODIGO) %>% summarize(DESCTO_KDK=round(mean(TBPDESC2,na.rm = TRUE),1)) 
+desct_kdk2 <- desct_kdk %>% group_by(CLICODIGO) %>% 
+  summarize(DESCTO_KDK=round(mean(TBPDESC2,na.rm = TRUE),1)) 
 
 
 desct_mrepro <- dbGetQuery(con2,"
@@ -286,10 +288,10 @@ descontos <- cli %>% mutate(DATA=format(Sys.Date(),"%d/%m%/%y")) %>%
   left_join(.,desct_geral,by="CLICODIGO") %>% 
   left_join(.,desct_mrepro,by="CLICODIGO") 
 
-desconto_repro <- union_all(desconto_repro,descontos)
+descontos_repro <- union_all(desconto_repro,descontos)
 
 
-save(descontos,file = "C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos.RData")
+save(descontos_repro,file = "C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos_repro.RData")
 
 
 ## TRANSFORM AND WRITE GG ======================================================================================
@@ -355,7 +357,7 @@ write.xlsx(descontos_geral, file = filewd,row.names=FALSE,sheetName = "GERAL", a
 
 
 mymaildesconto <- gm_mime() %>% 
-  gm_to("sandro.jakoska@repro.com.br,cristiano.regis@repro.com.br") %>% 
+  gm_to("sandro.jakoska@repro.com.br") %>% 
   gm_from ("comunicacao@repro.com.br") %>%
   gm_subject("RELATORIO DESCONTOS RELREPRO") %>%
   gm_text_body("Segue anexo relatorio.Esse e um email automatico.") %>% 
