@@ -74,7 +74,7 @@ END LENTES,
     INNER JOIN AUX ON PD.PROCODIGO= AUX.PROCODIGO
      GROUP BY 1,2,3") 
 
-sales2021 <- get(load("C:\\Users\\Repro\\Documents\\R\\ADM\\REPORT\\BASES\\sales2021.RData"))
+sales2021 <- get(load("C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\sales2021.RData"))
 
 sales <- union_all(sales2021,sales2022)
 
