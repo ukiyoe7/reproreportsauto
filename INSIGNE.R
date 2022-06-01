@@ -47,8 +47,6 @@ insigne <- dbGetQuery(con2,"
   ")  
 
 
-View(insigne)
-
 ## QUANTIDADE
 
 
