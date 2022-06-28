@@ -288,7 +288,7 @@ descontos <- cli %>% mutate(DATA=format(Sys.Date(),"%d/%m%/%y")) %>%
   left_join(.,desct_geral,by="CLICODIGO") %>% 
   left_join(.,desct_mrepro,by="CLICODIGO") 
 
-descontos_repro <- union_all(desconto_repro,descontos)
+descontos_repro <- union_all(descontos_repro,descontos)
 
 
 save(descontos_repro,file = "C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos_repro.RData")
@@ -299,7 +299,7 @@ save(descontos_repro,file = "C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\
 
 ## VARILUX 
 
-descontos_vlx <- descontos %>% mutate(row = row_number()) %>%
+descontos_vlx <- descontos_repro %>% mutate(row = row_number()) %>%
   .[,c(1:6,7)] %>% pivot_wider(names_from = DATA,values_from = DESCTO_VLX,values_fn = {mean}) %>% as.data.frame()
 
 descontos_vlx <- left_join(descontos_vlx,sales_cli_vlx,by="CLICODIGO") %>%  as.data.frame() 
@@ -309,7 +309,7 @@ range_write("1JR1yosWO9uAP6olKYbDSRtUt2eDeNykaxOiIxRfCXT4",data=descontos_vlx,sh
 
 ## KODAK
 
-descontos_kdk <- descontos %>% 
+descontos_kdk <- descontos_repro %>% 
   .[,c(1:6,8)] %>% pivot_wider(names_from = DATA,values_from = DESCTO_KDK,values_fn = {mean}) %>% as.data.frame()
 
 descontos_kdk <- left_join(descontos_kdk,sales_cli_kdk,by="CLICODIGO") %>%  as.data.frame() 
@@ -319,7 +319,7 @@ range_write("1JR1yosWO9uAP6olKYbDSRtUt2eDeNykaxOiIxRfCXT4",data=descontos_kdk,sh
 
 ## MARCA REPRO
 
-descontos_mrepro <- descontos %>% 
+descontos_mrepro <- descontos_repro %>% 
   .[,c(1:6,10)] %>% pivot_wider(names_from = DATA,values_from = DESCTO_MREPRO,values_fn = {mean}) %>% as.data.frame()
 
 descontos_mrepro <- left_join(descontos_mrepro,sales_cli_mrepro,by="CLICODIGO") %>%  as.data.frame() 
@@ -329,7 +329,7 @@ range_write("1JR1yosWO9uAP6olKYbDSRtUt2eDeNykaxOiIxRfCXT4",data=descontos_mrepro
 
 ## DESCONTOS GERAL
 
-descontos_geral <- descontos %>% 
+descontos_geral <- descontos_repro %>% 
   .[,c(1:6,9)] %>% pivot_wider(names_from = DATA,values_from = DESCTO_GERAL,values_fn = {mean}) %>% as.data.frame()
 
 descontos_geral <- left_join(descontos_geral,sales_cli_geral,by="CLICODIGO") %>%  as.data.frame() 
@@ -357,7 +357,7 @@ write.xlsx(descontos_geral, file = filewd,row.names=FALSE,sheetName = "GERAL", a
 
 
 mymaildesconto <- gm_mime() %>% 
-  gm_to("sandro.jakoska@repro.com.br") %>% 
+  gm_to("sandro.jakoska@repro.com.br,cristiano.regis@repro.com.br") %>% 
   gm_from ("comunicacao@repro.com.br") %>%
   gm_subject("RELATORIO DESCONTOS RELREPRO") %>%
   gm_text_body("Segue anexo relatorio.Esse e um email automatico.") %>% 
