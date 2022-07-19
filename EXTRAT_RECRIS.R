@@ -39,7 +39,7 @@ SUM(PDPQTDADE)QTD,SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA
 
  resumo_prod <- extrat_cli %>% group_by(DESCRICAO) %>% 
    summarize(VENDAS=sum(VRVENDA),QTD=sum(QTD)) %>% arrange(desc(VENDAS)) %>% 
-     mutate(MES=format(floor_date(Sys.Date()-30,"month"),"%m/%y")) %>% .[,c(4,1,2,3)] %>% as.data.frame()
+     mutate(MES=format(floor_date(Sys.Date(),"month"),"%m/%y")) %>% .[,c(4,1,2,3)] %>% as.data.frame()
 
  
  

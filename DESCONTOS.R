@@ -1,14 +1,14 @@
-## RELATORIO DE DESCONTOS COMERCIAIS
-## SANDRO JAKOSKA 15_02_2022
-
-library(tidyverse)
-library(lubridate)
-library(googlesheets4)
-library(DBI)
-library(gmailr)
-library(xlsx)
-
-con2 <- dbConnect(odbc::odbc(), "reproreplica")
+    ## RELATORIO DE DESCONTOS COMERCIAIS
+    ## SANDRO JAKOSKA 15_02_2022
+    
+    library(tidyverse)
+    library(lubridate)
+    library(googlesheets4)
+    library(DBI)
+    library(gmailr)
+    library(xlsx)
+    
+    con2 <- dbConnect(odbc::odbc(), "reproreplica")
 
 
 gm_auth_configure(path = "C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\sendmail.json")
@@ -342,9 +342,9 @@ range_write("1JR1yosWO9uAP6olKYbDSRtUt2eDeNykaxOiIxRfCXT4",data=descontos_geral,
 ## WRITE XLS ==================================================================
 
 
-filewd <-  paste0("C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos","_",format(Sys.Date(),"%d_%m_%y"),".xlsx")
-
-write.xlsx(descontos_vlx, file = filewd,row.names=FALSE,sheetName = "VARILUX")
+  filewd <-  paste0("C:\\Users\\Repro\\Documents\\R\\ADM\\REPORTS_AUTO\\BASES\\descontos","_",format(Sys.Date(),"%d_%m_%y"),".xlsx")
+  
+  write.xlsx(descontos_vlx, file = filewd,row.names=FALSE,sheetName = "VARILUX")
 
 write.xlsx(descontos_kdk, file = filewd,row.names=FALSE,sheetName = "KODAK", append = TRUE)
 
