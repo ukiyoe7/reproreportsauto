@@ -30,3 +30,75 @@ SELECT
         GROUP BY 1,2") 
 
 save(sales_city_2021,file="C:/Users/Repro/Documents/R/ADM/REPORTS_AUTO/BASES/sales_city_2021.RData")
+
+
+
+
+
+sales_pilares_2021 <- dbGetQuery(con2,"
+
+WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
+
+       CLI AS (SELECT DISTINCT C.CLICODIGO,
+                       CLINOMEFANT,
+                        ENDCODIGO,
+                         SETOR
+                          FROM CLIEN C
+                           LEFT JOIN (SELECT CLICODIGO,E.ZOCODIGO,ZODESCRICAO SETOR,ENDCODIGO FROM ENDCLI E
+                            LEFT JOIN (SELECT ZOCODIGO,ZODESCRICAO FROM ZONA WHERE ZOCODIGO IN (20,21,22,23,24,25,28))Z ON E.ZOCODIGO=Z.ZOCODIGO WHERE ENDFAT='S')A ON C.CLICODIGO=A.CLICODIGO
+                             WHERE CLICLIENTE='S'),
+
+         PED AS (SELECT ID_PEDIDO,
+                         P.CLICODIGO,
+                          SETOR,
+                           PEDDTBAIXA
+                            FROM PEDID P
+                             INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
+                              INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO AND P.ENDCODIGO=C.ENDCODIGO
+                               WHERE PEDDTBAIXA BETWEEN '01.01.2021' AND '31.12.2021' AND PEDSITPED<>'C' AND PEDLCFINANC IN ('S', 'L','N')),
+            
+                               
+        PROD AS  (SELECT PROCODIGO FROM PRODU WHERE PROTIPO IN ('P','F','E')) ,
+        
+        VLX AS  (SELECT PROCODIGO FROM PRODU WHERE MARCODIGO=57),
+        
+        KDK AS  (SELECT PROCODIGO FROM PRODU WHERE MARCODIGO=24),
+        
+        LA AS  (SELECT PROCODIGO FROM PRODU WHERE GR1CODIGO=2),
+        
+        LACRZ AS  (SELECT PROCODIGO FROM PRODU WHERE (PRODESCRICAO LIKE '%CRIZAL%' OR PRODESCRICAO LIKE '%C.FORTE%') AND GR1CODIGO=2),
+        
+        MPR AS  (SELECT PROCODIGO FROM PRODU WHERE MARCODIGO IN (128,189,135,106,158,159) AND PROTIPO<>'T'),
+        
+        TRANS AS  (SELECT PROCODIGO FROM PRODU WHERE (PRODESCRICAO LIKE '%TGEN8%' OR PRODESCRICAO LIKE '%TRANS%'))  
+
+        SELECT PEDDTBAIXA,
+                CLICODIGO,
+                 PR.PROCODIGO,
+                  PDPDESCRICAO,
+                   SETOR,
+                    CASE 
+                     WHEN VX.PROCODIGO IS NOT NULL THEN 'VARILUX'
+                      WHEN KD.PROCODIGO IS NOT NULL THEN 'KODAK'
+                       WHEN MP.PROCODIGO IS NOT NULL THEN 'MARCA REPRO'
+                        WHEN LZ.PROCODIGO IS NOT NULL THEN 'LA CRIZAL'
+                         ELSE 'OUTROS' END MARCA,
+                          IIF (T.PROCODIGO IS NOT NULL,'TRANSITIONS','') TRANSITIONS,
+                           CASE 
+                            WHEN L.PROCODIGO IS NOT NULL THEN 'LA'
+                             ELSE '' END TIPO,
+                              SUM(PDPQTDADE)QTD,
+                               SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA 
+                                FROM PDPRD PD
+                                 INNER JOIN PED P ON PD.ID_PEDIDO=P.ID_PEDIDO
+                                  INNER JOIN PROD PR ON PD.PROCODIGO=PR.PROCODIGO
+                                   LEFT JOIN VLX VX ON PD.PROCODIGO=VX.PROCODIGO
+                                    LEFT JOIN KDK KD ON PD.PROCODIGO=KD.PROCODIGO
+                                     LEFT JOIN MPR MP ON PD.PROCODIGO=MP.PROCODIGO
+                                      LEFT JOIN LACRZ LZ ON PD.PROCODIGO=LZ.PROCODIGO
+                                       LEFT JOIN TRANS T ON PD.PROCODIGO=T.PROCODIGO
+                                        LEFT JOIN LA L ON PD.PROCODIGO=L.PROCODIGO
+                                         GROUP BY 1,2,3,4,5,6,7,8")
+
+
+save(sales_pilares_2021,file="C:/Users/Repro/Documents/R/ADM/REPORTS_AUTO/BASES/sales_pilares_2021.RData")
