@@ -60,7 +60,7 @@ WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
                             FROM PEDID P
                              INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
                               INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO AND P.ENDCODIGO=C.ENDCODIGO
-                               WHERE PEDDTBAIXA BETWEEN '01.01.2022' AND 'YESTERDAY' AND PEDSITPED<>'C' AND PEDLCFINANC IN ('S', 'L','N')),
+                               WHERE PEDDTBAIXA BETWEEN '01.01.2022' AND 'TODAY' AND PEDSITPED<>'C' AND PEDLCFINANC IN ('S', 'L','N')),
             
                                
         PROD AS  (SELECT PROCODIGO FROM PRODU WHERE PROTIPO IN ('P','F','E')) ,
@@ -115,23 +115,23 @@ sales_pilares <- union_all(sales_pilares_2021,sales_pilares_2022) %>% filter(!st
 
 npilares <- sales_pilares %>% group_by(CLICODIGO,MARCA) %>% 
   summarize(
-    LASTMONTHLASTYEAR=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")>=floor_date((Sys.Date()-years(1)) %m-% months(1), 'month') & floor_date(PEDDTBAIXA,"day")<=ceiling_date((Sys.Date()-years(1)) %m-% months(1), 'month') %m-% days(1)],na.rm = TRUE),
+    LASTMONTHLASTYEAR=sum(QTD[floor_date(PEDDTBAIXA,"day")>=floor_date((Sys.Date()-years(1)) %m-% months(1), 'month') & floor_date(PEDDTBAIXA,"day")<=ceiling_date((Sys.Date()-years(1)) %m-% months(1), 'month') %m-% days(1)],na.rm = TRUE),
     
-    LASTMONTHTHISYEAR=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")>=floor_date(Sys.Date() %m-% months(1), 'month') & floor_date(PEDDTBAIXA,"day")<=ceiling_date(Sys.Date() %m-% months(1), 'month') %m-% days(1)],na.rm = TRUE),
+    LASTMONTHTHISYEAR=sum(QTD[floor_date(PEDDTBAIXA,"day")>=floor_date(Sys.Date() %m-% months(1), 'month') & floor_date(PEDDTBAIXA,"day")<=ceiling_date(Sys.Date() %m-% months(1), 'month') %m-% days(1)],na.rm = TRUE),
     
-    CURRENTMONTH=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")>=floor_date(Sys.Date(), "month") & floor_date(PEDDTBAIXA,"day")<=ceiling_date(Sys.Date(),'month') %m-% days(1)],na.rm = TRUE),
+    CURRENTMONTH=sum(QTD[floor_date(PEDDTBAIXA,"day")>=floor_date(Sys.Date(), "month") & floor_date(PEDDTBAIXA,"day")<=ceiling_date(Sys.Date(),'month') %m-% days(1)],na.rm = TRUE),
     
-    YTD21=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date()-years(1), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date()-years(1), "month")-1],na.rm = TRUE),
+    YTD21=sum(QTD[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date()-years(1), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date()-years(1), "month")-1],na.rm = TRUE),
     
-    YTD22=sum(VRVENDA[floor_date(PEDDTBAIXA,"day") >= floor_date(Sys.Date(), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date(), "month")-1],na.rm = TRUE),
+    YTD22=sum(QTD[floor_date(PEDDTBAIXA,"day") >= floor_date(Sys.Date(), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date(), "month")-1],na.rm = TRUE),
     
-    MEDIA21=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date()-years(1), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date()-years(1), "month")-1]/as.numeric(length(seq(floor_date(Sys.Date(),"year"),floor_date(Sys.Date(),"month"),by="month"))-1)),
+    MEDIA21=sum(QTD[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date()-years(1), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date()-years(1), "month")-1]/as.numeric(length(seq(floor_date(Sys.Date(),"year"),floor_date(Sys.Date(),"month"),by="month"))-1)),
     
-    MEDIA22=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date(), "year") & floor_date(PEDDTBAIXA,"day") < floor_date(Sys.Date(), "month")]/as.numeric(length(seq(floor_date(Sys.Date(),"year"),floor_date(Sys.Date(),"month"),by="month"))-1)),
+    MEDIA22=sum(QTD[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date(), "year") & floor_date(PEDDTBAIXA,"day") < floor_date(Sys.Date(), "month")]/as.numeric(length(seq(floor_date(Sys.Date(),"year"),floor_date(Sys.Date(),"month"),by="month"))-1)),
     
-    PAST12=sum(VRVENDA[floor_date(PEDDTBAIXA,"day")< Sys.Date()],na.rm = TRUE),
+    PAST12=sum(QTD[floor_date(PEDDTBAIXA,"day")< Sys.Date()],na.rm = TRUE),
     
-    SEMRECEITA=sum(VRVENDA[floor_date(PEDDTBAIXA,"day") > ceiling_date((Sys.Date()-years(1)) %m-% months(1), 'month') %m-% days(1)])
+    SEMRECEITA=sum(QTD[floor_date(PEDDTBAIXA,"day") > ceiling_date((Sys.Date()-years(1)) %m-% months(1), 'month') %m-% days(1)])
   ) %>%  mutate(VAR2022=ifelse(is.finite(YTD22/YTD21-1),YTD22/YTD21-1,0))
 
 
@@ -152,18 +152,71 @@ LASTMONTHTHISYEAR1 <- toupper(format(floor_date(Sys.Date(), "month")-1,"%b%/%Y")
 CURRENTMONTH1 <- toupper(format(floor_date(Sys.Date(), "month"),"%b%/%Y"))
 
 
-npilares2 <- left_join(npilares,cli,by="CLICODIGO")
+npilares2 <- inner_join(npilares,cli,by="CLICODIGO")
 
 
 npilares3 <- npilares2 %>% arrange(CLICODIGO) %>% as.data.frame() %>% 
   rename_at(3:5,~ c(LASTMONTHLASTYEAR1,LASTMONTHTHISYEAR1,CURRENTMONTH1)) %>% .[,c(1,14,15,2:7,12,13,8,9)]
 
 
+##  RANKING CLIENTS TRANSITIONS ==========================================================================
+
+npilares_transitions <- sales_pilares %>% filter(TRANSITIONS=='TRANSITIONS') %>% group_by(CLICODIGO,TRANSITIONS) %>% 
+  summarize(
+    LASTMONTHLASTYEAR=sum(QTD[floor_date(PEDDTBAIXA,"day")>=floor_date((Sys.Date()-years(1)) %m-% months(1), 'month') & floor_date(PEDDTBAIXA,"day")<=ceiling_date((Sys.Date()-years(1)) %m-% months(1), 'month') %m-% days(1)],na.rm = TRUE),
+    
+    LASTMONTHTHISYEAR=sum(QTD[floor_date(PEDDTBAIXA,"day")>=floor_date(Sys.Date() %m-% months(1), 'month') & floor_date(PEDDTBAIXA,"day")<=ceiling_date(Sys.Date() %m-% months(1), 'month') %m-% days(1)],na.rm = TRUE),
+    
+    CURRENTMONTH=sum(QTD[floor_date(PEDDTBAIXA,"day")>=floor_date(Sys.Date(), "month") & floor_date(PEDDTBAIXA,"day")<=ceiling_date(Sys.Date(),'month') %m-% days(1)],na.rm = TRUE),
+    
+    YTD21=sum(QTD[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date()-years(1), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date()-years(1), "month")-1],na.rm = TRUE),
+    
+    YTD22=sum(QTD[floor_date(PEDDTBAIXA,"day") >= floor_date(Sys.Date(), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date(), "month")-1],na.rm = TRUE),
+    
+    MEDIA21=sum(QTD[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date()-years(1), "year") & floor_date(PEDDTBAIXA,"day") <= floor_date(Sys.Date()-years(1), "month")-1]/as.numeric(length(seq(floor_date(Sys.Date(),"year"),floor_date(Sys.Date(),"month"),by="month"))-1)),
+    
+    MEDIA22=sum(QTD[floor_date(PEDDTBAIXA,"day")>= floor_date(Sys.Date(), "year") & floor_date(PEDDTBAIXA,"day") < floor_date(Sys.Date(), "month")]/as.numeric(length(seq(floor_date(Sys.Date(),"year"),floor_date(Sys.Date(),"month"),by="month"))-1)),
+    
+    PAST12=sum(QTD[floor_date(PEDDTBAIXA,"day")< Sys.Date()],na.rm = TRUE),
+    
+    SEMRECEITA=sum(QTD[floor_date(PEDDTBAIXA,"day") > ceiling_date((Sys.Date()-years(1)) %m-% months(1), 'month') %m-% days(1)])
+  ) %>%  mutate(VAR2022=ifelse(is.finite(YTD22/YTD21-1),YTD22/YTD21-1,0)) %>% 
+  mutate(MARCA='TRANSITIONS') %>% .[,-2] %>% .[,c(1,12,3:ncol(.)-1)]
+
+
+npilares_transitions <- npilares_transitions %>%  mutate(STATUS=case_when(
+  SEMRECEITA==0 ~ 'SEM RECEITA',
+  VAR2022>=0 ~ 'CRESCIMENTO',
+  VAR2022<0 ~ 'QUEDA',
+  PAST12==0  ~ 'PERDIDO',
+  YTD21==0 & YTD22>0 ~ 'RECUPERADO',
+  TRUE ~ ''
+))
+
+
+LASTMONTHLASTYEAR1 <- toupper(format(floor_date(Sys.Date()-years(1), "month")-1,"%b%/%Y"))
+
+LASTMONTHTHISYEAR1 <- toupper(format(floor_date(Sys.Date(), "month")-1,"%b%/%Y"))
+
+CURRENTMONTH1 <- toupper(format(floor_date(Sys.Date(), "month"),"%b%/%Y"))
+
+
+npilares2_transitions <- inner_join(npilares_transitions,cli,by="CLICODIGO")
+
+
+npilares3_transitions <- npilares2_transitions %>% arrange(CLICODIGO) %>% as.data.frame() %>% 
+  rename_at(3:5,~ c(LASTMONTHLASTYEAR1,LASTMONTHTHISYEAR1,CURRENTMONTH1)) %>% .[,c(1,14,15,2:7,12,13,8,9)]
+
+##  UNION ALL ==========================================================================
+
+
+npilares_all <- union_all(npilares3,npilares3_transitions) %>% arrange(CLICODIGO)
+
 
 ##  GOOGLE ==========================================================================
 
 range_write("1GpUPX7RQWL-TDrujKNhDYrKSZ5VzmumZPE8a3TXwaek",
-            data=npilares3,sheet = "PILARES",
+            data=npilares_all,sheet = "PILARES",
             range = "A:M",reformat = FALSE)
 
 ## the end

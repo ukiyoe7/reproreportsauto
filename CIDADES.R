@@ -16,6 +16,16 @@ library(googlesheets4)
 con2 <- dbConnect(odbc::odbc(), "reproreplica")
 
 
+##  CIDADES ==========================================================================
+
+cidades <- dbGetQuery(con2,"
+SELECT DISTINCT CIDNOME CIDADE, ZODESCRICAO SETOR FROM ENDCLI E
+           INNER JOIN CIDADE CD ON E.CIDCODIGO=CD.CIDCODIGO
+           INNER JOIN (SELECT ZOCODIGO,ZODESCRICAO FROM ZONA 
+                       WHERE ZOCODIGO IN(20,21,22,23,24,28))Z ON E.ZOCODIGO=Z.ZOCODIGO
+           WHERE ENDFAT='S'
+")
+
 ##  SALES ==========================================================================
 
 sales_city_2022 <- dbGetQuery(con2,"
@@ -30,10 +40,10 @@ WHERE CLICLIENTE='S'),
   
 FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','SR','R')),
   
-PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,CIDADE FROM PEDID P
+PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,CIDADE,SETOR FROM PEDID P
    INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
     INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO
-     WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01.01.2022' AND 'TODAY'),
+     WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01.01.2022' AND 'YESTERDAY'),
      
 AUX AS (SELECT PROCODIGO,PROTIPO FROM PRODU)     
 
@@ -77,8 +87,7 @@ nsales_city <- sales_city %>% group_by(CIDADE) %>%
   ) %>% mutate(VAR2022=ifelse(is.finite(YTD22/YTD21-1),YTD22/YTD21-1,0))
 
 
-nsales_city %>% mutate(across(2:5,round,2)) %>% view()
-
+nsales_city <- nsales_city %>% mutate(across(2:5,round,2)) %>% left_join(.,cidades,by="CIDADE") 
 
 
 nsales_city <- nsales_city %>%  mutate(STATUS=case_when(
@@ -97,16 +106,19 @@ LASTMONTHTHISYEAR1 <- toupper(format(floor_date(Sys.Date(), "month")-1,"%b%/%Y")
 CURRENTMONTH1 <- toupper(format(floor_date(Sys.Date(), "month"),"%b%/%Y"))
 
 nsales_city <- nsales_city %>% arrange(desc(.$YTD22)) %>% as.data.frame() %>% 
-  rename_at(2:4,~ c(LASTMONTHLASTYEAR1,LASTMONTHTHISYEAR1,CURRENTMONTH1)) %>% .[,c(1:6,11:12,7:8)]
+  rename_at(2:4,~ c(LASTMONTHLASTYEAR1,LASTMONTHTHISYEAR1,CURRENTMONTH1)) %>% 
+   .[,c(1,12,2:6,11,13,7,8)]
 
 
+nsales_city2 <- nsales_city %>% filter(!is.na(.$CIDADE))
 
 
+  
 ##  GOOGLE ==========================================================================
 
 range_write("1GpUPX7RQWL-TDrujKNhDYrKSZ5VzmumZPE8a3TXwaek",
-            data=nsales_city,sheet = "CIDADES",
-            range = "A:J",reformat = FALSE)
+            data=nsales_city2,sheet = "CIDADES",
+            range = "A:L",reformat = FALSE)
 
 
 

@@ -115,11 +115,21 @@ range_write("1mOfE__m24rjZ6iyusDg2GjvJOdRbB0mNBcS_MClqSEA",data=setor6,sheet = "
 
 ## RESUMO
 
-pedorigem2 <- pedorigem %>% group_by(SETOR,PEDORIGEM) %>% 
-  summarize(QTD=n_distinct(ID_PEDIDO)) %>% dcast(SETOR ~ PEDORIGEM) %>%  
-  as.data.frame() %>% mutate(W=coalesce(W,0)) %>% mutate(D=coalesce(D,0)) %>% 
-  mutate(PERC_W=round((W)/(W+D)*100,2)) %>% 
-  mutate(PERC_D=round((D)/(W+D)*100,2)) %>% arrange(desc(PERC_D)) 
+pedorigem2 <- pedorigem %>% 
+               group_by(SETOR,PEDORIGEM) %>% 
+                summarize(QTD=n_distinct(ID_PEDIDO)) %>% 
+                 dcast(SETOR ~ PEDORIGEM) %>%  
+                  as.data.frame() %>% 
+                   mutate(W=coalesce(W,0)) %>% 
+                    mutate(D=coalesce(D,0)) %>% 
+                     mutate(PERC_W=round((W)/(W+D)*100,2)) %>% 
+                      mutate(PERC_D=round((D)/(W+D)*100,2)) %>% 
+                       arrange(desc(PERC_D)) %>% 
+                        mutate(TOT=W+D) %>% 
+                         mutate(META=0.7) %>% 
+                          mutate(META2=TOT*META) %>% 
+                           mutate(FALTAM=W-META2)
+  
 
 
 

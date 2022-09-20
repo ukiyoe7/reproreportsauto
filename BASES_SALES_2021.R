@@ -12,7 +12,7 @@ WHERE CLICLIENTE='S'),
   
 FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','SR','R')),
   
-PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,CIDADE FROM PEDID P
+PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,CIDADE,SETOR FROM PEDID P
    INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
     INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO
      WHERE PEDSITPED<>'C' AND PEDDTBAIXA BETWEEN '01.01.2021' AND '31.12.2021'),
@@ -22,12 +22,13 @@ AUX AS (SELECT PROCODIGO,PROTIPO FROM PRODU)
 SELECT 
  PEDDTBAIXA,
   P.CIDADE,
-   SUM(PDPQTDADE) QTD,
-    SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA  
-     FROM PDPRD PD
-      INNER JOIN PED P ON PD.ID_PEDIDO=P.ID_PEDIDO
-       INNER JOIN AUX ON PD.PROCODIGO= AUX.PROCODIGO
-        GROUP BY 1,2") 
+   SETOR,
+    SUM(PDPQTDADE) QTD,
+     SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA  
+      FROM PDPRD PD
+       INNER JOIN PED P ON PD.ID_PEDIDO=P.ID_PEDIDO
+        INNER JOIN AUX ON PD.PROCODIGO= AUX.PROCODIGO
+         GROUP BY 1,2,3") 
 
 save(sales_city_2021,file="C:/Users/Repro/Documents/R/ADM/REPORTS_AUTO/BASES/sales_city_2021.RData")
 
@@ -56,9 +57,6 @@ WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
                              INNER JOIN FIS F ON P.FISCODIGO1=F.FISCODIGO
                               INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO AND P.ENDCODIGO=C.ENDCODIGO
                                WHERE PEDDTBAIXA BETWEEN '01.01.2021' AND '31.12.2021' AND PEDSITPED<>'C' AND PEDLCFINANC IN ('S', 'L','N')),
-            
-                               
-        PROD AS  (SELECT PROCODIGO FROM PRODU WHERE PROTIPO IN ('P','F','E')) ,
         
         VLX AS  (SELECT PROCODIGO FROM PRODU WHERE MARCODIGO=57),
         
@@ -66,7 +64,9 @@ WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
         
         LA AS  (SELECT PROCODIGO FROM PRODU WHERE GR1CODIGO=2),
         
-        LACRZ AS  (SELECT PROCODIGO FROM PRODU WHERE (PRODESCRICAO LIKE '%CRIZAL%' OR PRODESCRICAO LIKE '%C.FORTE%') AND GR1CODIGO=2),
+        TCRZ AS  (SELECT PROCODIGO FROM PRODU WHERE PRODESCRICAO LIKE '%CRIZAL%' AND PROTIPO='T'),
+        
+        LACRZ AS  (SELECT PROCODIGO FROM PRODU WHERE (PRODESCRICAO LIKE '%CRIZAL%' OR PRODESCRICAO LIKE '%C.FORTE%')  AND GR1CODIGO=2),
         
         MPR AS  (SELECT PROCODIGO FROM PRODU WHERE MARCODIGO IN (128,189,135,106,158,159) AND PROTIPO<>'T'),
         
@@ -74,7 +74,7 @@ WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
 
         SELECT PEDDTBAIXA,
                 CLICODIGO,
-                 PR.PROCODIGO,
+                 PD.PROCODIGO,
                   PDPDESCRICAO,
                    SETOR,
                     CASE 
@@ -82,23 +82,24 @@ WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
                       WHEN KD.PROCODIGO IS NOT NULL THEN 'KODAK'
                        WHEN MP.PROCODIGO IS NOT NULL THEN 'MARCA REPRO'
                         WHEN LZ.PROCODIGO IS NOT NULL THEN 'LA CRIZAL'
-                         ELSE 'OUTROS' END MARCA,
-                          IIF (T.PROCODIGO IS NOT NULL,'TRANSITIONS','') TRANSITIONS,
-                           CASE 
-                            WHEN L.PROCODIGO IS NOT NULL THEN 'LA'
-                             ELSE '' END TIPO,
-                              SUM(PDPQTDADE)QTD,
-                               SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA 
-                                FROM PDPRD PD
-                                 INNER JOIN PED P ON PD.ID_PEDIDO=P.ID_PEDIDO
-                                  INNER JOIN PROD PR ON PD.PROCODIGO=PR.PROCODIGO
-                                   LEFT JOIN VLX VX ON PD.PROCODIGO=VX.PROCODIGO
-                                    LEFT JOIN KDK KD ON PD.PROCODIGO=KD.PROCODIGO
-                                     LEFT JOIN MPR MP ON PD.PROCODIGO=MP.PROCODIGO
-                                      LEFT JOIN LACRZ LZ ON PD.PROCODIGO=LZ.PROCODIGO
-                                       LEFT JOIN TRANS T ON PD.PROCODIGO=T.PROCODIGO
-                                        LEFT JOIN LA L ON PD.PROCODIGO=L.PROCODIGO
-                                         GROUP BY 1,2,3,4,5,6,7,8")
+                         WHEN TZ.PROCODIGO IS NOT NULL THEN 'TRAT CRIZAL'
+                          ELSE 'OUTROS' END MARCA,
+                           IIF (T.PROCODIGO IS NOT NULL,'TRANSITIONS','') TRANSITIONS,
+                            CASE 
+                             WHEN L.PROCODIGO IS NOT NULL THEN 'LA'
+                              ELSE '' END TIPO,
+                               SUM(PDPQTDADE)QTD,
+                                SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA 
+                                 FROM PDPRD PD
+                                  INNER JOIN PED P ON PD.ID_PEDIDO=P.ID_PEDIDO
+                                    LEFT JOIN VLX VX ON PD.PROCODIGO=VX.PROCODIGO
+                                     LEFT JOIN KDK KD ON PD.PROCODIGO=KD.PROCODIGO
+                                      LEFT JOIN MPR MP ON PD.PROCODIGO=MP.PROCODIGO
+                                       LEFT JOIN LACRZ LZ ON PD.PROCODIGO=LZ.PROCODIGO
+                                        LEFT JOIN TCRZ TZ ON PD.PROCODIGO=TZ.PROCODIGO
+                                         LEFT JOIN TRANS T ON PD.PROCODIGO=T.PROCODIGO
+                                          LEFT JOIN LA L ON PD.PROCODIGO=L.PROCODIGO
+                                           GROUP BY 1,2,3,4,5,6,7,8")
 
 
 save(sales_pilares_2021,file="C:/Users/Repro/Documents/R/ADM/REPORTS_AUTO/BASES/sales_pilares_2021.RData")
