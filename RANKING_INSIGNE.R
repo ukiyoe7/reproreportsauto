@@ -56,7 +56,7 @@ cli_insigne2 <- left_join(cli_insigne,insigne_promo,by="CLICODIGO")
 
 insigne_sales <- dbGetQuery(con2,"
   
-  WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
+    WITH FIS AS (SELECT FISCODIGO FROM TBFIS WHERE FISTPNATOP IN ('V','R','SR')),
   
   
   PED AS (SELECT ID_PEDIDO,PEDDTBAIXA,CLICODIGO FROM PEDID P

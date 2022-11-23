@@ -104,7 +104,7 @@ SELECT CLICODIGO,
   WHERE TBPCODIGO IN (101,102,103,104,105,202,309,302,303,304,305,308,312)
   ") 
 
-mdesc <- desct %>% dcast(.,CLICODIGO ~ LINHA,value.var = "TBPDESC2",mean)%>% as.data.frame()  %>% replace(.,is.na(.),0)
+mdesc <- desct %>% dcast(.,CLICODIGO ~ LINHA,value.var = "TBPDESC2",fun.aggregate = mean,na.rm = TRUE) %>% as.data.frame() 
 
 gdesct <- dbGetQuery(con2,"
 SELECT C.CLICODIGO,
