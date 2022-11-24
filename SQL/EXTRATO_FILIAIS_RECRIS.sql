@@ -17,10 +17,13 @@
                                 INNER JOIN CLI C ON P.CLICODIGO=C.CLICODIGO
                                  WHERE
                                   PEDDTBAIXA
-                                   BETWEEN DATEADD(MONTH, -12, CURRENT_DATE - EXTRACT(DAY FROM CURRENT_DATE) + 1)
+                                   BETWEEN DATEADD(MONTH, -6, CURRENT_DATE - EXTRACT(DAY FROM CURRENT_DATE) + 1)
                                     AND CURRENT_DATE - EXTRACT(DAY FROM CURRENT_DATE) 
                                      AND PEDSITPED<>'C'
-                                      AND PEDLCFINANC IN ('S', 'L','N')) 
+                                      AND PEDLCFINANC IN ('S', 'L','N')),
+                                      
+        PROD AS (SELECT PROCODIGO FROM PRODU WHERE PROTIPO<>'M')                              
+                                
       
       
         SELECT PD.ID_PEDIDO,
@@ -28,10 +31,15 @@
                    CLICODIGO,
                     CLINOMEFANT NOMEFANTASIA,
                      GCLCODIGO GRUPO,
-                         PROCODIGO,
+                         PD.PROCODIGO,
                           PDPDESCRICAO DESCRICAO,
                             SUM(PDPQTDADE)QTD,
                              SUM(PDPUNITLIQUIDO*PDPQTDADE)VRVENDA 
                               FROM PDPRD PD
                                INNER JOIN PED P ON PD.ID_PEDIDO=P.ID_PEDIDO
+                                INNER JOIN PROD PR ON PD.PROCODIGO=PR.PROCODIGO
                                 GROUP BY 1,2,3,4,5,6,7 ORDER BY ID_PEDIDO DESC
+                                
+                                
+                                
+                                
